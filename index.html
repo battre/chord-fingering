@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piano Chord Fingering Chart Generator — Interactive Chord & Fingering Diagrams</title>
+<meta name="description" content="Free interactive piano chord visualizer. Click keys to build chords, add finger numbers (1–5), and print chord & fingering diagrams for piano lessons. Supports German (H) and English (B) note names.">
+<meta name="keywords" content="piano chord visualizer, piano chord diagrams, piano fingering chart, chord chart generator, klavier akkorde, music education, piano teaching, beginner piano chords, printable piano chord sheets">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#86b0e8">
+<link rel="alternate" hreflang="en" href="?lang=en">
+<link rel="alternate" hreflang="de" href="?lang=de">
+<link rel="alternate" hreflang="x-default" href="?lang=en">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Piano Chord Visualizer — Interactive Chord & Fingering Diagrams">
+<meta property="og:description" content="Free interactive piano chord visualizer. Build, save and print chord diagrams with finger numbering for piano lessons.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="de_DE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Piano Chord Visualizer">
+<meta name="twitter:description" content="Free interactive piano chord visualizer with printable chord & fingering diagrams.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Piano Chord Fingering Chart Generator",
+  "alternateName": "Klavier-Akkord Fingertabllen-Generator",
+  "description": "Free interactive piano chord visualizer. Click keys to build chords, assign finger numbers, save chords to a library, and print chord-and-fingering diagrams. Supports German (H) and English (B) note names.",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Any (web browser)",
+  "browserRequirements": "Requires a modern web browser with JavaScript enabled",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "inLanguage": ["en", "de"],
+  "audience": {
+    "@type": "EducationalAudience",
+    "educationalRole": ["teacher", "student"]
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Dominic Battré"
+  },
+  "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "copyrightNotice": "Released into the public domain under CC0 1.0 by Dominic Battré."
+}
+</script>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #fafafa;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 10px 0 20px;
+  }
+  h2 {
+    font-size: 18px;
+    margin: 30px 0 10px;
+    align-self: flex-start;
+  }
+  .controls {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+  }
+  .controls label { font-size: 14px; color: #333; }
+  .controls select, .controls input[type="text"] {
+    margin-left: 6px;
+    padding: 4px 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .finger-group { display: flex; gap: 6px; align-items: center; }
+  .finger-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    background: white;
+    cursor: pointer;
+    font-weight: bold; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .finger-btn.active { background: #ef6b6b; color: white; border-color: #ef6b6b; }
+  .finger-btn.none { font-size: 18px; }
+  button.action {
+    padding: 6px 14px; font-size: 14px;
+    border: 1px solid #888; border-radius: 5px;
+    background: white; cursor: pointer;
+  }
+  button.action:hover { background: #eee; }
+  #pianoContainer {
+    background: white;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  #title {
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  svg { display: block; }
+  .legend {
+    margin-top: 15px;
+    font-size: 13px;
+    color: #666;
+    text-align: center;
+    max-width: 800px;
+  }
+  #librarySection {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #chordsInput {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    min-height: 140px;
+    resize: vertical;
+  }
+  #libraryControls {
+    margin-top: 8px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  #parseError {
+    color: #c33;
+    font-size: 13px;
+  }
+  #chordsContainer {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-start;
+  }
+  .chord-card {
+    background: white;
+    padding: 14px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .chord-card-title {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  .chord-card-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .chord-card-status {
+    font-size: 12px;
+    color: #2a8;
+    min-height: 16px;
+  }
+  details.help summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: #555;
+  }
+  details.help {
+    margin-top: 10px;
+    max-width: 800px;
+  }
+  details.help pre {
+    background: #f4f4f4;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    overflow-x: auto;
+  }
+  footer {
+    margin: 40px 0 10px;
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    max-width: 800px;
+  }
+  footer a { color: #888; }
+
+  @media print {
+    @page { margin: 10mm; }
+    body {
+      background: white;
+      /* Extra padding, because many browsers ignore the @page margin
+         in favor of the print dialog's margin setting. */
+      padding: 15mm 15mm !important;
+      margin: 0;
+      display: block;
+    }
+    body > *:not(#librarySection) { display: none !important; }
+    #librarySection > *:not(#chordsContainer) { display: none !important; }
+    #chordsContainer {
+      display: grid !important;
+      grid-template-columns: repeat(var(--print-cols, 3), 1fr);
+      gap: 8mm;
+      margin: 0 !important;
+    }
+    .chord-card {
+      box-shadow: none !important;
+      border: 1px solid #bbb;
+      padding: 6mm 4mm;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .chord-card-actions { display: none !important; }
+    .chord-card svg {
+      width: 100%;
+      height: auto;
+    }
+    .chord-card-title {
+      font-size: 14pt;
+    }
+    footer { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<h1 id="pageHeading">Piano Chord Visualizer</h1>
+
+<div class="controls">
+  <label><span id="labelLang">Language</span>:
+    <select id="langSel">
+      <option value="en">English</option>
+      <option value="de">Deutsch</option>
+    </select>
+  </label>
+  <label><span id="labelTitle">Title</span>:
+    <input type="text" id="chordTitle" size="22">
+  </label>
+  <label><span id="labelFrom">From</span>:
+    <select id="startNote"></select>
+  </label>
+  <label><span id="labelTo">To</span>:
+    <select id="endNote"></select>
+  </label>
+  <div class="finger-group">
+    <span id="labelFinger">Finger</span>:
+    <button class="finger-btn none active" data-finger="">·</button>
+    <button class="finger-btn" data-finger="1">1</button>
+    <button class="finger-btn" data-finger="2">2</button>
+    <button class="finger-btn" data-finger="3">3</button>
+    <button class="finger-btn" data-finger="4">4</button>
+    <button class="finger-btn" data-finger="5">5</button>
+  </div>
+  <label><input type="checkbox" id="highlightC"> <span id="labelHighlightC">Highlight C keys</span></label>
+  <button class="action" id="clearBtn">Clear all</button>
+  <button class="action" id="copyBtn">Copy to clipboard</button>
+  <button class="action" id="downloadBtn">Save as PNG</button>
+  <button class="action" id="appendBtn">Append to library</button>
+  <span id="copyStatus" style="font-size:13px;color:#2a8;"></span>
+</div>
+
+<div id="pianoContainer">
+  <div id="title">Piano Chord: C Major</div>
+  <svg id="piano" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<div class="legend" id="legendText"></div>
+
+<div id="librarySection">
+  <h2 id="libraryHeading">Chord Library</h2>
+  <textarea id="chordsInput" spellcheck="false"></textarea>
+  <div id="libraryControls">
+    <button class="action" id="updateChordsBtn">Update</button>
+    <label><input type="checkbox" id="libHighlightC"> <span id="libHighlightCLabel">Highlight C keys</span></label>
+    <label><span id="printColsLabel">Print columns</span>:
+      <select id="printCols">
+        <option value="2">2</option>
+        <option value="3" selected>3</option>
+        <option value="4">4</option>
+      </select>
+    </label>
+    <button class="action" id="printBtn">Print</button>
+    <span id="parseError"></span>
+  </div>
+  <details class="help">
+    <summary id="helpSummary">Syntax help</summary>
+    <div id="helpBody"></div>
+  </details>
+  <div id="chordsContainer"></div>
+</div>
+
+<footer id="siteFooter"></footer>
+
+<script>
+// --- i18n ---
+const I18N = {
+  de: {
+    heading: "Klavier-Akkord Visualisierung",
+    labelLang: "Sprache",
+    labelTitle: "Titel",
+    labelFrom: "Von",
+    labelTo: "Bis",
+    labelFinger: "Finger",
+    labelHighlightC: "C-Tasten grau",
+    clearBtn: "Alles löschen",
+    copyBtn: "In Zwischenablage kopieren",
+    downloadBtn: "Als PNG speichern",
+    appendBtn: "An Bibliothek anhängen",
+    statusAppended: "✓ Hinzugefügt",
+    statusNoMarkers: "Keine Tasten markiert",
+    legend: "Klick auf eine Taste setzt einen Marker (Note bzw. Fingernummer). Nochmaliges Klicken entfernt den Marker. Wähle vorher links den Finger (· = nur Notenname).",
+    defaultTitle: "C-Dur",
+    statusCopied: "✓ Kopiert",
+    statusSaved: "✓ Gespeichert",
+    statusCopyFail: "Kopieren fehlgeschlagen — bitte PNG speichern",
+    statusImgFail: "Fehler beim Erzeugen des Bildes",
+    statusSaveFail: "Fehler beim Speichern",
+    pageTitle: "Klavier-Akkord Visualisierung",
+    htmlLang: "de",
+    notes: ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","B","H"],
+    libraryHeading: "Akkord-Bibliothek",
+    updateChordsBtn: "Aktualisieren",
+    libHighlightCLabel: "C-Tasten grau",
+    printColsLabel: "Druck-Spalten",
+    printBtn: "Drucken",
+    helpSummary: "Syntax-Hilfe",
+    helpBody: `<p>Eine Zeile pro Akkord:</p>
+<pre>Titel: Note[Oktave]=Finger, Note[Oktave]=Finger, ...</pre>
+<ul>
+  <li><b>Note</b>: C, D, E, F, G, A, H (oder B). Vorzeichen: <code>#</code> oder <code>b</code> (z.B. <code>F#4</code>, <code>Bb3</code>).</li>
+  <li><b>Oktave</b>: Zahl (C4 = mittleres C). Pflicht.</li>
+  <li><b>Finger</b>: 1–5. Lass <code>=Finger</code> weg, um stattdessen den Notennamen zu zeigen.</li>
+  <li><code>B</code> und <code>H</code> werden beide als H (englisches B) interpretiert; <code>Bb</code> ist das deutsche B.</li>
+  <li>Optionale Zeile <code>range: F3-G4</code> setzt einen festen Tastenbereich für alle Akkorde.</li>
+  <li>Zeilen, die mit <code>#</code> beginnen, sind Kommentare.</li>
+</ul>`,
+    errInvalidRange: (n, txt) => `Zeile ${n}: ungültige Range "${txt}"`,
+    errNoColon: (n, txt) => `Zeile ${n}: kein ":" gefunden — "${txt}"`,
+    errInvalidNote: (n, note) => `Zeile ${n}: ungültige Note "${note}"`,
+    errInvalidFinger: (n, f) => `Zeile ${n}: ungültiger Finger "${f}" (1–5 erlaubt)`,
+    footerHtml: `Von Dominic Battré. Diese Seite und ihr Quelltext sind unter <a href="https://creativecommons.org/publicdomain/zero/1.0/" rel="license noopener" target="_blank">CC0 1.0 Public Domain</a> freigegeben — frei nutzbar für jeden Zweck, ohne Einschränkung.`,
+    defaultLibrary: `# Akkordfolge mit minimaler Handbewegung, ausgehend von C-Dur (5-2-1).
+range: F3-G4
+
+C-Dur: G3=5, C4=2, E4=1
+a-moll: A3=5, C4=2, E4=1
+e-moll: G3=5, H3=2, E4=1
+F-Dur: A3=5, C4=2, F4=1
+d-moll: A3=5, D4=2, F4=1
+G-Dur: G3=5, H3=3, D4=1
+G7: G3=5, B3=3, F4=1
+C7: A#3=3, C4=2, E4=1
+D7: F#3=3, C4=2, D4=1`,
+  },
+  en: {
+    heading: "Piano Chord Visualizer",
+    labelLang: "Language",
+    labelTitle: "Title",
+    labelFrom: "From",
+    labelTo: "To",
+    labelFinger: "Finger",
+    labelHighlightC: "Highlight C keys",
+    clearBtn: "Clear all",
+    copyBtn: "Copy to clipboard",
+    downloadBtn: "Save as PNG",
+    appendBtn: "Append to library",
+    statusAppended: "✓ Added",
+    statusNoMarkers: "No keys marked",
+    legend: "Click a key to add a marker (note name or finger number). Click again to remove it. Pick the finger on the left first (· = note name only).",
+    defaultTitle: "C Major",
+    statusCopied: "✓ Copied",
+    statusSaved: "✓ Saved",
+    statusCopyFail: "Copy failed — please save as PNG",
+    statusImgFail: "Error creating image",
+    statusSaveFail: "Error saving file",
+    pageTitle: "Piano Chord Visualizer",
+    htmlLang: "en",
+    notes: ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"],
+    libraryHeading: "Chord Library",
+    updateChordsBtn: "Update",
+    libHighlightCLabel: "Highlight C keys",
+    printColsLabel: "Print columns",
+    printBtn: "Print",
+    helpSummary: "Syntax help",
+    helpBody: `<p>One line per chord:</p>
+<pre>Title: Note[Octave]=Finger, Note[Octave]=Finger, ...</pre>
+<ul>
+  <li><b>Note</b>: C, D, E, F, G, A, B (or H). Accidentals: <code>#</code> or <code>b</code> (e.g. <code>F#4</code>, <code>Bb3</code>).</li>
+  <li><b>Octave</b>: integer (C4 = middle C). Required.</li>
+  <li><b>Finger</b>: 1–5. Omit <code>=Finger</code> to display the note name instead.</li>
+  <li>Both <code>B</code> and <code>H</code> are accepted for B natural; <code>Bb</code> is B-flat.</li>
+  <li>Optional line <code>range: F3-G4</code> sets a fixed key range for all chords.</li>
+  <li>Lines starting with <code>#</code> are comments.</li>
+</ul>`,
+    errInvalidRange: (n, txt) => `Line ${n}: invalid range "${txt}"`,
+    errNoColon: (n, txt) => `Line ${n}: no ":" found — "${txt}"`,
+    errInvalidNote: (n, note) => `Line ${n}: invalid note "${note}"`,
+    errInvalidFinger: (n, f) => `Line ${n}: invalid finger "${f}" (1–5 allowed)`,
+    footerHtml: `By Dominic Battré. This page and its source code are dedicated to the <a href="https://creativecommons.org/publicdomain/zero/1.0/" rel="license noopener" target="_blank">CC0 1.0 Public Domain</a> — free to use for any purpose, no restrictions.`,
+    defaultLibrary: `# Chord sequence with minimal hand movement, starting from C major (5-2-1).
+range: F3-G4
+
+C Major: G3=5, C4=2, E4=1
+A minor: A3=5, C4=2, E4=1
+E minor: G3=5, B3=2, E4=1
+F Major: A3=5, C4=2, F4=1
+D minor: A3=5, D4=2, F4=1
+G Major: G3=5, B3=3, D4=1
+G7: G3=5, B3=3, F4=1
+C7: A#3=3, C4=2, E4=1
+D7: F#3=3, C4=2, D4=1`,
+  },
+};
+
+function getLangFromUrl() {
+  const p = new URLSearchParams(window.location.search);
+  const v = (p.get("lang") || "").toLowerCase();
+  return (v === "en" || v === "de") ? v : "en";
+}
+function setLangInUrl(lang) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("lang", lang);
+  history.replaceState(null, "", url.toString());
+}
+
+let lang = getLangFromUrl();
+function t() { return I18N[lang]; }
+
+// --- MIDI helpers ---
+function midiToDisplay(m) { return t().notes[((m % 12) + 12) % 12]; }
+function midiToName(m) {
+  const oct = Math.floor(m / 12) - 1;
+  return midiToDisplay(m) + oct;
+}
+function isBlack(m) { return [1,3,6,8,10].includes(((m % 12) + 12) % 12); }
+
+// --- DSL parsing ---
+const LETTER_TO_SEMI = { C:0, D:2, E:4, F:5, G:7, A:9, B:11, H:11 };
+function parsePitch(s) {
+  const m = s.match(/^([A-Ha-h])([#b♯♭]?)(-?\d)$/);
+  if (!m) return null;
+  const letter = m[1].toUpperCase();
+  const acc = m[2];
+  const oct = parseInt(m[3]);
+  let semi = LETTER_TO_SEMI[letter];
+  if (semi == null) return null;
+  if (acc === "#" || acc === "♯") semi += 1;
+  else if (acc === "b" || acc === "♭") semi -= 1;
+  return (oct + 1) * 12 + semi;
+}
+
+function parseLibrary(text) {
+  const lines = text.split(/\r?\n/);
+  const chords = [];
+  const errors = [];
+  let globalRange = null;
+  const L = t();
+  lines.forEach((rawLine, idx) => {
+    const lineNum = idx + 1;
+    // "#" only starts a comment at the start of the line or after whitespace —
+    // otherwise it would collide with sharp accidentals like "A#3".
+    const line = rawLine.replace(/(^|\s)#.*$/, "$1").trim();
+    if (!line) return;
+    const rangeMatch = line.match(/^range[:\s]+(\S+?)\s*[-\s]\s*(\S+)$/i);
+    if (rangeMatch) {
+      const a = parsePitch(rangeMatch[1]);
+      const b = parsePitch(rangeMatch[2]);
+      if (a == null || b == null) {
+        errors.push(L.errInvalidRange(lineNum, rawLine.trim()));
+        return;
+      }
+      globalRange = [Math.min(a, b), Math.max(a, b)];
+      return;
+    }
+    const colonIdx = line.indexOf(":");
+    if (colonIdx < 0) {
+      errors.push(L.errNoColon(lineNum, rawLine.trim()));
+      return;
+    }
+    const title = line.slice(0, colonIdx).trim();
+    const rest = line.slice(colonIdx + 1).trim();
+    const tokens = rest.split(/[,\s]+/).filter(Boolean);
+    const markers = new Map();
+    let ok = true;
+    for (const tok of tokens) {
+      const eq = tok.indexOf("=");
+      const noteStr = eq >= 0 ? tok.slice(0, eq) : tok;
+      const fingerStr = eq >= 0 ? tok.slice(eq + 1) : "";
+      const midi = parsePitch(noteStr);
+      if (midi == null) {
+        errors.push(L.errInvalidNote(lineNum, noteStr));
+        ok = false;
+        break;
+      }
+      if (fingerStr && !/^[1-5]$/.test(fingerStr)) {
+        errors.push(L.errInvalidFinger(lineNum, fingerStr));
+        ok = false;
+        break;
+      }
+      markers.set(midi, fingerStr);
+    }
+    if (ok) chords.push({ title, markers });
+  });
+  return { chords, errors, range: globalRange };
+}
+
+// --- DOM refs ---
+const startSel = document.getElementById("startNote");
+const endSel = document.getElementById("endNote");
+const langSel = document.getElementById("langSel");
+const chordTitle = document.getElementById("chordTitle");
+const chordsInput = document.getElementById("chordsInput");
+
+const MIN_MIDI = 36;
+const MAX_MIDI = 96;
+
+function populateNoteSelects() {
+  const prevStart = startSel.value ? parseInt(startSel.value) : 53;
+  const prevEnd = endSel.value ? parseInt(endSel.value) : 67;
+  startSel.innerHTML = "";
+  endSel.innerHTML = "";
+  for (let m = MIN_MIDI; m <= MAX_MIDI; m++) {
+    const opt1 = document.createElement("option");
+    opt1.value = m;
+    opt1.textContent = midiToName(m);
+    startSel.appendChild(opt1);
+    const opt2 = opt1.cloneNode(true);
+    endSel.appendChild(opt2);
+  }
+  startSel.value = prevStart;
+  endSel.value = prevEnd;
+}
+
+function applyLanguage(updateUrl = true) {
+  const L = t();
+  document.documentElement.setAttribute("lang", L.htmlLang);
+  document.title = L.pageTitle;
+  document.getElementById("pageHeading").textContent = L.heading;
+  document.getElementById("labelLang").textContent = L.labelLang;
+  document.getElementById("labelTitle").textContent = L.labelTitle;
+  document.getElementById("labelFrom").textContent = L.labelFrom;
+  document.getElementById("labelTo").textContent = L.labelTo;
+  document.getElementById("labelFinger").textContent = L.labelFinger;
+  document.getElementById("labelHighlightC").textContent = L.labelHighlightC;
+  document.getElementById("clearBtn").textContent = L.clearBtn;
+  document.getElementById("copyBtn").textContent = L.copyBtn;
+  document.getElementById("downloadBtn").textContent = L.downloadBtn;
+  document.getElementById("appendBtn").textContent = L.appendBtn;
+  document.getElementById("legendText").textContent = L.legend;
+  document.getElementById("libraryHeading").textContent = L.libraryHeading;
+  document.getElementById("updateChordsBtn").textContent = L.updateChordsBtn;
+  document.getElementById("libHighlightCLabel").textContent = L.libHighlightCLabel;
+  document.getElementById("printColsLabel").textContent = L.printColsLabel;
+  document.getElementById("printBtn").textContent = L.printBtn;
+  document.getElementById("helpSummary").textContent = L.helpSummary;
+  document.getElementById("helpBody").innerHTML = L.helpBody;
+  document.getElementById("siteFooter").innerHTML = L.footerHtml;
+  langSel.value = lang;
+
+  const otherLang = lang === "de" ? "en" : "de";
+  if (!chordTitle.value || chordTitle.value === I18N[otherLang].defaultTitle) {
+    chordTitle.value = L.defaultTitle;
+  }
+  document.getElementById("title").textContent = chordTitle.value;
+
+  if (!chordsInput.value.trim() || chordsInput.value.trim() === I18N[otherLang].defaultLibrary.trim()) {
+    chordsInput.value = L.defaultLibrary;
+  }
+
+  populateNoteSelects();
+  if (updateUrl) setLangInUrl(lang);
+  render();
+  renderLibrary();
+}
+
+langSel.addEventListener("change", () => {
+  lang = langSel.value;
+  applyLanguage(true);
+});
+
+let currentFinger = "";
+document.querySelectorAll(".finger-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".finger-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentFinger = btn.dataset.finger;
+  });
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "input" || tag === "textarea" || tag === "select") return;
+  if (!/^[0-5]$/.test(e.key)) return;
+  const finger = e.key === "0" ? "" : e.key;
+  const btn = document.querySelector(`.finger-btn[data-finger="${finger}"]`);
+  if (btn) { btn.click(); e.preventDefault(); }
+});
+
+const markers = new Map();
+
+// --- Piano SVG builder (shared) ---
+const SVGNS = "http://www.w3.org/2000/svg";
+function buildPianoSVG(rawStart, rawEnd, markers, opts) {
+  opts = opts || {};
+  let start = rawStart, end = rawEnd;
+  if (end < start) [start, end] = [end, start];
+  while (isBlack(start)) start--;
+  while (isBlack(end)) end++;
+
+  const whiteKeys = [];
+  for (let m = start; m <= end; m++) if (!isBlack(m)) whiteKeys.push(m);
+
+  const whiteW = 56, whiteH = 220, blackW = 34, blackH = 135;
+  const padX = 16, padY = 16;
+  const totalW = whiteKeys.length * whiteW + padX * 2;
+  const totalH = whiteH + padY * 2;
+
+  let svg = opts.targetSvg;
+  if (!svg) {
+    svg = document.createElementNS(SVGNS, "svg");
+    svg.setAttribute("xmlns", SVGNS);
+  }
+  svg.setAttribute("width", totalW);
+  svg.setAttribute("height", totalH);
+  svg.setAttribute("viewBox", `0 0 ${totalW} ${totalH}`);
+  svg.innerHTML = "";
+
+  const frame = document.createElementNS(SVGNS, "rect");
+  frame.setAttribute("x", padX - 8);
+  frame.setAttribute("y", padY - 8);
+  frame.setAttribute("width", totalW - 2 * (padX - 8));
+  frame.setAttribute("height", totalH - 2 * (padY - 8));
+  frame.setAttribute("rx", 14);
+  frame.setAttribute("ry", 14);
+  frame.setAttribute("fill", "none");
+  frame.setAttribute("stroke", "#9ab6e0");
+  frame.setAttribute("stroke-width", 3);
+  svg.appendChild(frame);
+
+  const bg = document.createElementNS(SVGNS, "rect");
+  bg.setAttribute("x", padX);
+  bg.setAttribute("y", padY);
+  bg.setAttribute("width", whiteKeys.length * whiteW);
+  bg.setAttribute("height", whiteH);
+  bg.setAttribute("fill", "white");
+  svg.appendChild(bg);
+
+  whiteKeys.forEach((m, i) => {
+    const x = padX + i * whiteW;
+    const keyOuter = document.createElementNS(SVGNS, "rect");
+    keyOuter.setAttribute("x", x);
+    keyOuter.setAttribute("y", padY);
+    keyOuter.setAttribute("width", whiteW);
+    keyOuter.setAttribute("height", whiteH);
+    const isC = (m % 12) === 0;
+    keyOuter.setAttribute("fill", (isC && opts.highlightC) ? "#e6e6e6" : "white");
+    keyOuter.setAttribute("stroke", "#9ab6e0");
+    keyOuter.setAttribute("stroke-width", 2);
+    keyOuter.setAttribute("rx", 4);
+    if (opts.onKeyClick) {
+      keyOuter.style.cursor = "pointer";
+      keyOuter.addEventListener("click", () => opts.onKeyClick(m));
+    }
+    svg.appendChild(keyOuter);
+  });
+
+  whiteKeys.forEach((m, i) => {
+    const next = m + 1;
+    if (next <= end && isBlack(next)) {
+      const x = padX + (i + 1) * whiteW - blackW / 2;
+      const bk = document.createElementNS(SVGNS, "rect");
+      bk.setAttribute("x", x);
+      bk.setAttribute("y", padY);
+      bk.setAttribute("width", blackW);
+      bk.setAttribute("height", blackH);
+      bk.setAttribute("fill", "#2a2a2a");
+      bk.setAttribute("stroke", "#1a1a1a");
+      bk.setAttribute("stroke-width", 1);
+      bk.setAttribute("rx", 4);
+      if (opts.onKeyClick) {
+        bk.style.cursor = "pointer";
+        bk.addEventListener("click", (e) => { e.stopPropagation(); opts.onKeyClick(next); });
+      }
+      svg.appendChild(bk);
+    }
+  });
+
+  markers.forEach((finger, m) => {
+    if (m < start || m > end) return;
+    let cx, cy;
+    const r = 18;
+    if (!isBlack(m)) {
+      const idx = whiteKeys.indexOf(m);
+      if (idx < 0) return;
+      cx = padX + idx * whiteW + whiteW / 2;
+      cy = padY + whiteH - 28;
+    } else {
+      let left = m - 1;
+      while (isBlack(left)) left--;
+      const idx = whiteKeys.indexOf(left);
+      cx = padX + (idx + 1) * whiteW;
+      cy = padY + blackH - 22;
+    }
+    const circ = document.createElementNS(SVGNS, "circle");
+    circ.setAttribute("cx", cx);
+    circ.setAttribute("cy", cy);
+    circ.setAttribute("r", r);
+    circ.setAttribute("fill", "#ef6b6b");
+    circ.setAttribute("stroke", "white");
+    circ.setAttribute("stroke-width", 2);
+    if (opts.onKeyClick) {
+      circ.style.cursor = "pointer";
+      circ.addEventListener("click", (e) => { e.stopPropagation(); opts.onKeyClick(m); });
+    }
+    svg.appendChild(circ);
+
+    const label = document.createElementNS(SVGNS, "text");
+    label.setAttribute("x", cx);
+    label.setAttribute("y", cy + 1);
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("dominant-baseline", "central");
+    label.setAttribute("fill", "white");
+    label.setAttribute("font-size", "14");
+    label.setAttribute("font-weight", "bold");
+    label.setAttribute("font-family", "sans-serif");
+    label.textContent = finger ? finger : midiToDisplay(m);
+    label.style.pointerEvents = "none";
+    svg.appendChild(label);
+  });
+
+  return { svg, totalW, totalH };
+}
+
+function render() {
+  const highlightC = document.getElementById("highlightC").checked;
+  buildPianoSVG(parseInt(startSel.value), parseInt(endSel.value), markers, {
+    targetSvg: document.getElementById("piano"),
+    highlightC,
+    onKeyClick: toggleMarker,
+  });
+}
+
+function toggleMarker(m) {
+  if (markers.has(m) && markers.get(m) === currentFinger) {
+    markers.delete(m);
+  } else {
+    if (currentFinger) {
+      for (const [key, f] of markers) {
+        if (f === currentFinger && key !== m) markers.delete(key);
+      }
+    }
+    markers.set(m, currentFinger);
+  }
+  render();
+}
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  markers.clear();
+  render();
+});
+
+chordTitle.addEventListener("input", e => {
+  document.getElementById("title").textContent = e.target.value;
+});
+
+startSel.addEventListener("change", render);
+endSel.addEventListener("change", render);
+document.getElementById("highlightC").addEventListener("change", render);
+
+// --- Screenshot / Export ---
+function escapeXml(s) {
+  return s.replace(/[<>&"']/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;","'":"&apos;"}[c]));
+}
+
+function svgToCanvas(svgElement, titleText, scale = 2) {
+  return new Promise((resolve, reject) => {
+    const svgW = parseInt(svgElement.getAttribute("width"));
+    const svgH = parseInt(svgElement.getAttribute("height"));
+    const titleH = titleText ? 40 : 0;
+    const margin = 20;
+    const totalW = svgW + margin * 2;
+    const totalH = svgH + titleH + margin * 2;
+
+    const titleSvg = titleText
+      ? `<text x="${totalW/2}" y="${margin + 22}" text-anchor="middle" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="18" font-weight="600" fill="#222">${escapeXml(titleText)}</text>`
+      : "";
+
+    const composite = `<svg xmlns="${SVGNS}" width="${totalW}" height="${totalH}" viewBox="0 0 ${totalW} ${totalH}"><rect x="0" y="0" width="${totalW}" height="${totalH}" fill="white"/>${titleSvg}<g transform="translate(${margin}, ${margin + titleH})">${svgElement.innerHTML}</g></svg>`;
+
+    const blob = new Blob([composite], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = totalW * scale;
+      canvas.height = totalH * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      resolve(canvas);
+    };
+    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+function showStatus(msg, color = "#2a8") {
+  const el = document.getElementById("copyStatus");
+  el.style.color = color;
+  el.textContent = msg;
+  setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, 2500);
+}
+
+function sanitizeFilename(s) {
+  return (s || "chord").replace(/[^\w\-äöüÄÖÜß ]+/g, "").trim().replace(/\s+/g, "_") || "chord";
+}
+
+async function copyCanvasToClipboard(canvas, statusEl) {
+  return new Promise((resolve) => {
+    canvas.toBlob(async (blob) => {
+      try {
+        await navigator.clipboard.write([ new ClipboardItem({ "image/png": blob }) ]);
+        if (statusEl) { statusEl.style.color = "#2a8"; statusEl.textContent = t().statusCopied; setTimeout(() => statusEl.textContent = "", 2500); }
+        resolve(true);
+      } catch (err) {
+        if (statusEl) { statusEl.style.color = "#c33"; statusEl.textContent = t().statusCopyFail; setTimeout(() => statusEl.textContent = "", 4000); }
+        console.error(err);
+        resolve(false);
+      }
+    }, "image/png");
+  });
+}
+
+function downloadCanvas(canvas, filename, statusEl) {
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename + ".png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    if (statusEl) { statusEl.style.color = "#2a8"; statusEl.textContent = t().statusSaved; setTimeout(() => statusEl.textContent = "", 2500); }
+  }, "image/png");
+}
+
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  try {
+    const canvas = await svgToCanvas(document.getElementById("piano"), document.getElementById("title").textContent, 2);
+    canvas.toBlob(async (blob) => {
+      try {
+        await navigator.clipboard.write([ new ClipboardItem({ "image/png": blob }) ]);
+        showStatus(t().statusCopied);
+      } catch (err) {
+        showStatus(t().statusCopyFail, "#c33"); console.error(err);
+      }
+    }, "image/png");
+  } catch (e) {
+    showStatus(t().statusImgFail, "#c33"); console.error(e);
+  }
+});
+
+document.getElementById("downloadBtn").addEventListener("click", async () => {
+  try {
+    const canvas = await svgToCanvas(document.getElementById("piano"), document.getElementById("title").textContent, 2);
+    downloadCanvas(canvas, sanitizeFilename(chordTitle.value));
+  } catch (e) {
+    showStatus(t().statusSaveFail, "#c33"); console.error(e);
+  }
+});
+
+function midiToDSL(m) {
+  const pc = ((m % 12) + 12) % 12;
+  const oct = Math.floor(m / 12) - 1;
+  const namesDE = ["C","C#","D","D#","E","F","F#","G","G#","A","B","H"];
+  const namesEN = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const names = lang === "de" ? namesDE : namesEN;
+  return names[pc] + oct;
+}
+
+document.getElementById("appendBtn").addEventListener("click", () => {
+  if (markers.size === 0) {
+    showStatus(t().statusNoMarkers, "#c33");
+    return;
+  }
+  const sorted = [...markers.entries()].sort((a, b) => a[0] - b[0]);
+  const parts = sorted.map(([m, finger]) => {
+    const note = midiToDSL(m);
+    return finger ? `${note}=${finger}` : note;
+  });
+  // Strip any "Prefix:" (e.g. "Piano Chord: ") and drop remaining ":" —
+  // otherwise the title would clash with the DSL separator.
+  const titleParts = chordTitle.value.split(":");
+  let title = titleParts[titleParts.length - 1].replace(/:/g, "").trim();
+  if (!title) title = lang === "de" ? "Akkord" : "Chord";
+  const line = `${title}: ${parts.join(", ")}`;
+  const current = chordsInput.value;
+  const sep = current.length === 0 || current.endsWith("\n") ? "" : "\n";
+  chordsInput.value = current + sep + line + "\n";
+  renderLibrary();
+  showStatus(t().statusAppended);
+  document.getElementById("librarySection").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+// --- Library rendering ---
+function renderLibrary() {
+  const container = document.getElementById("chordsContainer");
+  const errorEl = document.getElementById("parseError");
+  container.innerHTML = "";
+  errorEl.textContent = "";
+
+  const text = chordsInput.value;
+  const { chords, errors, range } = parseLibrary(text);
+  if (errors.length) errorEl.textContent = errors.join(" • ");
+
+  const highlightC = document.getElementById("libHighlightC").checked;
+
+  for (const chord of chords) {
+    let start, end;
+    if (range) {
+      [start, end] = range;
+    } else {
+      const midis = [...chord.markers.keys()];
+      const lo = Math.min(...midis);
+      const hi = Math.max(...midis);
+      start = lo - 2; end = hi + 2;
+    }
+
+    const card = document.createElement("div");
+    card.className = "chord-card";
+
+    const titleDiv = document.createElement("div");
+    titleDiv.className = "chord-card-title";
+    titleDiv.textContent = chord.title;
+    card.appendChild(titleDiv);
+
+    const { svg } = buildPianoSVG(start, end, chord.markers, { highlightC });
+    card.appendChild(svg);
+
+    const actions = document.createElement("div");
+    actions.className = "chord-card-actions";
+
+    const statusEl = document.createElement("span");
+    statusEl.className = "chord-card-status";
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "action";
+    copyBtn.textContent = t().copyBtn;
+    copyBtn.addEventListener("click", async () => {
+      try {
+        const canvas = await svgToCanvas(svg, chord.title, 2);
+        copyCanvasToClipboard(canvas, statusEl);
+      } catch (e) { statusEl.style.color = "#c33"; statusEl.textContent = t().statusImgFail; }
+    });
+    actions.appendChild(copyBtn);
+
+    const dlBtn = document.createElement("button");
+    dlBtn.className = "action";
+    dlBtn.textContent = t().downloadBtn;
+    dlBtn.addEventListener("click", async () => {
+      try {
+        const canvas = await svgToCanvas(svg, chord.title, 2);
+        downloadCanvas(canvas, sanitizeFilename(chord.title), statusEl);
+      } catch (e) { statusEl.style.color = "#c33"; statusEl.textContent = t().statusSaveFail; }
+    });
+    actions.appendChild(dlBtn);
+
+    actions.appendChild(statusEl);
+    card.appendChild(actions);
+    container.appendChild(card);
+  }
+}
+
+document.getElementById("updateChordsBtn").addEventListener("click", renderLibrary);
+document.getElementById("libHighlightC").addEventListener("change", renderLibrary);
+
+const printColsSel = document.getElementById("printCols");
+function applyPrintCols() {
+  document.getElementById("chordsContainer").style.setProperty("--print-cols", printColsSel.value);
+}
+printColsSel.addEventListener("change", applyPrintCols);
+applyPrintCols();
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+chordsInput.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+    e.preventDefault();
+    renderLibrary();
+  }
+});
+
+// init
+startSel.value = 53;
+endSel.value = 67;
+applyLanguage(false);
+</script>
+
+</body>
+</html>
