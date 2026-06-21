@@ -743,11 +743,11 @@ function buildPianoSVG(rawStart, rawEnd, markers, opts) {
 
     const label = document.createElementNS(SVGNS, "text");
     label.setAttribute("x", cx);
-    label.setAttribute("y", cy + 1);
+    label.setAttribute("y", cy);
     label.setAttribute("text-anchor", "middle");
     label.setAttribute("dominant-baseline", "central");
     label.setAttribute("fill", "white");
-    label.setAttribute("font-size", "14");
+    label.setAttribute("font-size", "28");
     label.setAttribute("font-weight", "bold");
     label.setAttribute("font-family", "sans-serif");
     label.textContent = finger ? finger : midiToDisplay(m);
